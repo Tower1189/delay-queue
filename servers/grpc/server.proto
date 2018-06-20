@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package grpc;
+
+service DelayQueue {
+    rpc Pop (PopRequest) returns (DataResponse) {}
+    rpc Delete ()
+}
+
+message PopRequest {
+    string topic=1;
+}
+
+message Data {
+    string id=2;
+    string body=3;
+    string topic=7;
+    int32 delay=8;
+    int32 ttr=9;
+}
+
+message DataResponse {
+    int32 code=4;
+    string message=5;
+    Data data=6;
+}
+
+message DeleteRequest {
+    string id=10;
+}
+
+message FinishRequest {
+    string id=11;
+}
+
+message PushRequest {
+    string id=12;
+    string topic=13;
+
+}

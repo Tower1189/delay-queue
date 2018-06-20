@@ -15,36 +15,39 @@ var (
 
 const (
 	// DefaultBindAddress 监听地址
-	DefaultBindAddress         = "0.0.0.0:9277"
+	DefaultBindAddress = "0.0.0.0:9277"
+	// DefaultGrpcBindAddress grpc监听地址
+	DefaultGrpcBindAddress = "0.0.0.0:9278"
 	// DefaultBucketSize bucket数量
-	DefaultBucketSize          = 3
+	DefaultBucketSize = 3
 	// DefaultBucketName bucket名称
-	DefaultBucketName          = "dq_bucket_%d"
+	DefaultBucketName = "dq_bucket_%d"
 	// DefaultQueueName 队列名称
-	DefaultQueueName           = "dq_queue_%s"
+	DefaultQueueName = "dq_queue_%s"
 	// DefaultQueueBlockTimeout 轮询队列超时时间
-	DefaultQueueBlockTimeout   = 178
+	DefaultQueueBlockTimeout = 178
 	// DefaultRedisHost Redis连接地址
-	DefaultRedisHost           = "127.0.0.1:6379"
+	DefaultRedisHost = "127.0.0.1:6379"
 	// DefaultRedisDb Redis数据库编号
-	DefaultRedisDb             = 1
+	DefaultRedisDb = 5
 	// DefaultRedisPassword Redis密码
-	DefaultRedisPassword       = ""
+	DefaultRedisPassword = ""
 	// DefaultRedisMaxIdle Redis连接池闲置连接数
-	DefaultRedisMaxIdle        = 10
+	DefaultRedisMaxIdle = 10
 	// DefaultRedisMaxActive Redis连接池最大激活连接数, 0为不限制
-	DefaultRedisMaxActive      = 0
+	DefaultRedisMaxActive = 0
 	// DefaultRedisConnectTimeout Redis连接超时时间,单位毫秒
 	DefaultRedisConnectTimeout = 5000
 	// DefaultRedisReadTimeout Redis读取超时时间, 单位毫秒
-	DefaultRedisReadTimeout    = 180000
+	DefaultRedisReadTimeout = 180000
 	// DefaultRedisWriteTimeout Redis写入超时时间, 单位毫秒
-	DefaultRedisWriteTimeout   = 3000
+	DefaultRedisWriteTimeout = 3000
 )
 
 // Config 应用配置
 type Config struct {
-	BindAddress       string      // http server 监听地址
+	BindAddress       string      // http_server server 监听地址
+	GrpcBindAddress   string      // grpc server 监听地址
 	BucketSize        int         // bucket数量
 	BucketName        string      // bucket在redis中的键名,
 	QueueName         string      // ready queue在redis中的键名
@@ -84,6 +87,7 @@ func (config *Config) parse(path string) {
 
 	section := file.Section("")
 	config.BindAddress = section.Key("bind_address").MustString(DefaultBindAddress)
+	config.GrpcBindAddress = section.Key("grpc_address").MustString(DefaultGrpcBindAddress)
 	config.BucketSize = section.Key("bucket_size").MustInt(DefaultBucketSize)
 	config.BucketName = section.Key("bucket_name").MustString(DefaultBucketName)
 	config.QueueName = section.Key("queue_name").MustString(DefaultQueueName)
@@ -102,6 +106,7 @@ func (config *Config) parse(path string) {
 // 初始化默认配置
 func (config *Config) initDefaultConfig() {
 	config.BindAddress = DefaultBindAddress
+	config.GrpcBindAddress = DefaultGrpcBindAddress
 	config.BucketSize = DefaultBucketSize
 	config.BucketName = DefaultBucketName
 	config.QueueName = DefaultQueueName

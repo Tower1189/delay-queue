@@ -9,7 +9,10 @@ import (
 
 	"github.com/ouqiang/delay-queue/config"
 	"github.com/ouqiang/delay-queue/delayqueue"
-	"github.com/ouqiang/delay-queue/routers"
+	"github.com/ouqiang/delay-queue/servers/http_server"
+	"github.com/ouqiang/delay-queue/servers/grpc"
+	"os/signal"
+	"syscall"
 )
 
 // Cmd 应用入口Command
@@ -27,6 +30,8 @@ const (
 
 // Run 运行应用
 func (cmd *Cmd) Run() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
 	// 解析命令行参数
 	cmd.parseCommandArgs()
@@ -40,27 +45,35 @@ func (cmd *Cmd) Run() {
 	delayqueue.Init()
 
 	// 运行web server
-	cmd.runWeb()
+	go cmd.runWeb()
+	// 运行 grpc
+	go cmd.runGrpc()
+	<-c
 }
 
 // 解析命令行参数
 func (cmd *Cmd) parseCommandArgs() {
 	// 配置文件
-	flag.StringVar(&configFile, "c", "", "./delay-queue -c /path/to/delay-queue.conf")
+	flag.StringVar(&configFile, "c", "", "./delay-delay-queue -c /path/to/delay-delay-queue.conf")
 	// 版本
-	flag.BoolVar(&version, "v", false, "./delay-queue -v")
+	flag.BoolVar(&version, "v", false, "./delay-delay-queue -v")
 	flag.Parse()
 }
 
 // 运行Web Server
 func (cmd *Cmd) runWeb() {
-	http.HandleFunc("/push", routers.Push)
-	http.HandleFunc("/pop", routers.Pop)
-	http.HandleFunc("/finish", routers.Delete)
-	http.HandleFunc("/delete", routers.Delete)
-	http.HandleFunc("/get", routers.Get)
+	http.HandleFunc("/push", http_server.Push)
+	http.HandleFunc("/pop", http_server.Pop)
+	http.HandleFunc("/finish", http_server.Delete)
+	http.HandleFunc("/delete", http_server.Delete)
+	http.HandleFunc("/get", http_server.Get)
 
-	log.Printf("listen %s\n", config.Setting.BindAddress)
+	log.Printf("http server listen %s\n", config.Setting.BindAddress)
 	err := http.ListenAndServe(config.Setting.BindAddress, nil)
 	log.Fatalln(err)
+}
+
+func (cmd *Cmd) runGrpc() {
+	log.Printf("grpc server listen %s\n", config.Setting.GrpcBindAddress)
+	grpc.Run(config.Setting.GrpcBindAddress)
 }
